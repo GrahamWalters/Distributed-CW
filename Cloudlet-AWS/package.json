@@ -1,0 +1,17 @@
+{
+  "name": "DS-Cloudlet",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "aws-sdk": "^2.2.39",
+    "body-parser": "latest",
+    "compression": "latest",
+    "express": "latest",
+    "morgan": "^1.7.0",
+    "multer": "^1.1.0",
+    "underscore": "latest"
+  },
+  "devDependencies": {
+    "nodemon": "latest"
+  }
+}
