@@ -1,0 +1,16 @@
+{
+  "name": "DS-Cloudlet-Dummy",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "body-parser": "latest",
+    "compression": "latest",
+    "express": "latest",
+    "morgan": "^1.7.0",
+    "multer": "^1.1.0",
+    "underscore": "latest"
+  },
+  "devDependencies": {
+    "nodemon": "latest"
+  }
+}
