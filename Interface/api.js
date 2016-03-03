@@ -5,7 +5,6 @@ var config          = require('./config')
 var express         = require('express');
 var api             = express.Router();
 var _               = require('underscore');
-var moment          = require('moment');
 var jwt             = require('jsonwebtoken');
 var request         = require('request');
 var fs              = require('fs');
@@ -212,7 +211,7 @@ api.route('/files/:id')
 
             for (var share in file.shares) {
                 request
-                    .delete('http://localhost:3002/api/object/'+share._id)
+                    .del('http://localhost:3002/api/object/'+share._id)
                     .on('response', function(response) {
                         if (response.statusCode == 202 &&
                             response.body.status == 'success') {
