@@ -1,0 +1,52 @@
+<div class="row">
+  <div class="col-md-12">
+    <div class="row">
+      <div class="col-md-10 col-md-offset-1">
+
+        <div class="row">
+          <div class="col-sm-6">
+            <input type="text" class="form-control" ng-model="search.name" placeholder="Filter">
+          </div>
+        </div><br>
+
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Date Modified</th>
+              <th>Size</th>
+              <th>Controls</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="file in files | filter:search | orderObjectBy: 'modified'">
+              <td ng-bind="file.name"></td>
+              <td ng-bind="file.modified"></td>
+              <td ng-bind="file.size | formatBytes: 1"></td>
+              <td>
+                <div class="btn-group btn-xs">
+                  <button class="btn btn-success" title="Download" ng-click="download(file._id)">
+                    <span class="glyphicon glyphicon-download-alt"></span>
+                  </button>
+                  <button class="btn btn-info" title="Update" ng-click="update(file._id)">
+                    <span class="glyphicon glyphicon-open"></span>
+                  </button>
+                  <button class="btn btn-danger" title="Delete" ng-click="delete(file._id)">
+                    <span class="glyphicon glyphicon-trash"></span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+      <div class="col-md-1">
+        <button class="btn btn-primary pull-right" style="position:fixed;" title="Upload New File" ng-click="create()">
+          <span class="glyphicon glyphicon-plus"></span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
