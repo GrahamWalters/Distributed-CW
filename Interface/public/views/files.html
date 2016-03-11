@@ -21,14 +21,14 @@
           <tbody>
             <tr ng-repeat="file in files | filter:search | orderObjectBy: 'modified'">
               <td ng-bind="file.name"></td>
-              <td ng-bind="file.modified"></td>
+              <td ng-bind="file.modified | date: 'medium'"></td>
               <td ng-bind="file.size | formatBytes: 1"></td>
               <td>
                 <div class="btn-group btn-xs">
-                  <button class="btn btn-success" title="Download" ng-click="download(file._id)">
+                  <button class="btn btn-success" title="Download" ng-click="download(file)">
                     <span class="glyphicon glyphicon-download-alt"></span>
                   </button>
-                  <button class="btn btn-info" title="Update" ng-click="update(file._id)">
+                  <button class="btn btn-info" title="Update" ng-click="setFileToUpdate(file)" data-toggle="modal" data-target="#updateFileModel">
                     <span class="glyphicon glyphicon-open"></span>
                   </button>
                   <button class="btn btn-danger" title="Delete" ng-click="delete(file._id)">
@@ -42,11 +42,56 @@
 
       </div>
       <div class="col-md-1">
-        <button class="btn btn-primary pull-right" style="position:fixed;" title="Upload New File" ng-click="create()">
+        <button class="btn btn-primary pull-right" style="position:fixed;" title="Upload New File" data-toggle="modal" data-target="#createFileModel">
           <span class="glyphicon glyphicon-plus"></span>
         </button>
       </div>
     </div>
 
+  </div>
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="createFileModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Create File</h4>
+      </div>
+      <div class="modal-body">
+
+        <input type="file" class="form-control" id="createFile" file-model="createFile"/>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" data-ng-click="create()" data-dismiss="modal">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="updateFileModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Update {{ fileToUpdate.name }}</h4>
+      </div>
+      <div class="modal-body">
+
+        <input type="file" class="form-control" id="updateFile" file-model="updateFile"/>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" data-ng-click="update()" data-dismiss="modal">Update</button>
+      </div>
+    </div>
   </div>
 </div>

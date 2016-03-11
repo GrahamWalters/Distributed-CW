@@ -75,20 +75,47 @@ ctrls.controller('FilesCtrl', function($scope, $http, API, auth) {
     $scope.search = { name:'' };
     $scope.files = [];
 
-    $http.get(API + '/files/').success(function(res) {
-        $scope.files = res.files;
-    });
+    function load() {
+        $http.get(API + '/files/').success(function(res) {
+            $scope.files = res.files;
+        });
+    }
+    load();
 
     $scope.create = function() {
-        console.log('create');
+        var fd = new FormData();
+        fd.append('file', $scope.createFile);
+
+        $http.post(API+'/files', fd, {
+            transformRequest: angular.identity,
+            headers: {'Content-Type': undefined}
+        }).then(function(res) {
+            console.info('POST: /files', res);
+            load();
+        });
     };
 
-    $scope.download = function(id) {
-        console.log('download', id);
+    $scope.download = function(file) {
+        $http.get(API + '/files/' + file._id, { responseType: 'blob' }).success(function(blob) {
+            saveAs(blob, file.name);
+        });
     };
 
-    $scope.update = function(id) {
-        console.log('update', id);
+    $scope.setFileToUpdate = function(file) {
+        $scope.fileToUpdate = file;
+    }
+
+    $scope.update = function() {
+        var fd = new FormData();
+        fd.append('file', $scope.updateFile);
+
+        $http.put(API + '/files/'+ id, fd, {
+            transformRequest: angular.identity,
+            headers: {'Content-Type': undefined}
+        }).then(function(res) {
+            console.info('PUT: /files', res);
+            load();
+        });
     };
 
     $scope.delete = function(id) {
@@ -97,6 +124,7 @@ ctrls.controller('FilesCtrl', function($scope, $http, API, auth) {
         $http.delete(API + '/files/'+ id).success(function(res) {
             if (res.status === 'removed') {
                 // Remove local/refresh
+                load();
             } else {
                 console.error('delete', res)
             }
