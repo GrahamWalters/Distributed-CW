@@ -1,3 +1,12 @@
+var config          = require('./config')
+var _               = require('underscore');
+var FormData        = require('form-data');
+var request         = require('request');
+var http            = require('http');
+
+var File            = require('./models/file');
+var User            = require('./models/user');
+
 var ShareManager = function() {
     var self = this;
     this.file;
@@ -6,6 +15,11 @@ var ShareManager = function() {
         this.file = new File(file);
         this.file.save();
 
+        return this.file;
+    };
+
+    this.setFile = function(file) {
+        this.file = file;
         return this.file;
     };
 

@@ -196,10 +196,46 @@ api.route('/files/:id')
         });
     })
 
-    .put(auth, function(req, res) {
+    .put([auth, upload.single('file')], function(req, res) {
         File.findOne({ _owner: req.user.id, _id: req.params.id }, function(err, file) {
             if (err) throw err;
-            res.json(file);
+            if (file.name !== req.file.originalname || file.mimetype !== req.file.mimetype) {
+                res.status(400); // Bad Request
+                return res.json({ success: false, message: 'File Name or Mimetype changed!' });
+            }
+
+            // Delete the current shares
+            _.each(file.shares, function(share) {
+                request.del('http://localhost:3002/api/objects/'+share._id, function(err, httpResponse, body) {
+                    body = JSON.parse(body);
+                    if (httpResponse.statusCode == 200 && body.success == true) {
+                        console.log('share deleted:', share._id);
+                        share.remove();
+                    }
+                });
+            });
+
+            // Update file attributes
+            file.T    = req.user.fileT;
+            file.N    = req.user.fileN;
+            file.size = req.file.size;
+            file.save();
+
+            // Create the new shares
+            var sm = new ShareManager();
+            sm.setFile(file);
+
+            sm.splitFile({
+                id:    file._id.toString(),
+                fileT: req.user.fileT,
+                fileN: req.user.fileN,
+                file:  fs.createReadStream(req.file.path)
+            });
+
+            fs.unlink(req.file.path);
+
+            res.status(202); // Accepted for processing
+            res.json({ success: true, message: 'processing', file: file });
         });
     })
 
@@ -209,7 +245,8 @@ api.route('/files/:id')
 
             _.each(file.shares, function(share) {
                 request.del('http://localhost:3002/api/objects/'+share._id, function(err, httpResponse, body) {
-                    if (httpResponse.statusCode == 200 && body.status == 'success') {
+                    body = JSON.parse(body);
+                    if (httpResponse.statusCode == 200 && body.success == true) {
                         share.remove().exec();
                     }
                 });

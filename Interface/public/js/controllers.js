@@ -106,6 +106,8 @@ ctrls.controller('FilesCtrl', function($scope, $http, API, auth) {
     }
 
     $scope.update = function() {
+        var id = $scope.fileToUpdate._id;
+
         var fd = new FormData();
         fd.append('file', $scope.updateFile);
 
@@ -113,6 +115,7 @@ ctrls.controller('FilesCtrl', function($scope, $http, API, auth) {
             transformRequest: angular.identity,
             headers: {'Content-Type': undefined}
         }).then(function(res) {
+            $scope.fileToUpdate = {};
             console.info('PUT: /files', res);
             load();
         });
