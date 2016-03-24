@@ -25,6 +25,7 @@ api.get('/buckets', function(req, res) {
 api.route('/objects')
     .post(upload.single('file'), function(req, res) {
         if (!req.file || !req.file.buffer) {
+            console.error('File Missing!');
             return res.json({ success: false, message: 'Missing file' });
         }
 
@@ -36,6 +37,7 @@ api.route('/objects')
                 console.log('httpUploadProgress', progress);
             })
             .on('success', function(response) {
+                res.status(201);
                 res.json({ success: true, response: response });
             })
             .send();

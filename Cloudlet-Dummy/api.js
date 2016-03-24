@@ -13,10 +13,12 @@ var fs              = require('fs');
 api.route('/objects')
     .post(upload.single('file'), function(req, res) {
         if (!req.file) {
+            console.error('File Missing!');
             return res.json({ success: false, message: 'Missing file' });
         } else {
             fs.rename(req.file.path, 'uploads/'+req.body.key, function(err) {
                 if ( err ) console.error('Rename failed:', err);
+                res.status(201);
                 res.json({ success: true });
             });
         }
