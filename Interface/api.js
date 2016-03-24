@@ -189,11 +189,13 @@ api.route('/files/:id')
             };
 
             _.each(file.shares, function(share) {
-                data.shares.push( request.get({url:'http://localhost:3002/api/objects/'+share._id}) );
+                data.shares.push(
+                    request.get( config.services[share.provider]+'/api/objects/'+share._id )
+                );
             });
 
             request
-                .post({ url:'http://localhost:9000/join', formData: data })
+                .post({ url: config.services.engine+'/join', formData: data })
                 .on('response', function(response) {
                     delete response.headers.server;
                     response.headers['content-type'] = file.mimetype+';charset=UTF-8';
@@ -213,7 +215,9 @@ api.route('/files/:id')
 
             // Delete the current shares
             _.each(file.shares, function(share) {
-                request.del('http://localhost:3002/api/objects/'+share._id, function(err, httpResponse, body) {
+                request.del(config.services[share.provider]+'/api/objects/'+share._id,
+                    function(err, httpResponse, body) {
+
                     body = JSON.parse(body);
                     if (httpResponse.statusCode == 200 && body.success == true) {
                         console.log('share deleted:', share._id);
@@ -259,7 +263,9 @@ api.route('/files/:id')
             if (err) throw err;
 
             _.each(file.shares, function(share) {
-                request.del('http://localhost:3002/api/objects/'+share._id, function(err, httpResponse, body) {
+                request.del(config.services[share.provider]+'/api/objects/'+share._id,
+                    function(err, httpResponse, body) {
+
                     body = JSON.parse(body);
                     if (httpResponse.statusCode == 200 && body.success == true) {
                         share.remove();
