@@ -16,9 +16,15 @@ var FileSchema = new Schema({
     md5      : { type: String, required: false },
     size     : { type: Number, required: true },
     mimetype : { type: String, required: true },
+    T        : { type: Number, required: true },
+    N        : { type: Number, required: true },
     shares   : [ ShareSchema ],
-    _owner   : { type: Schema.Types.ObjectId, ref: 'User' },
-    created  : { type: Date, default: Date.now }
+    _owner   : { type: Schema.Types.ObjectId, ref: 'User' }
+}, {
+    timestamps: {
+        createdAt: 'created',
+        updatedAt: 'modified'
+    }
 });
 
 

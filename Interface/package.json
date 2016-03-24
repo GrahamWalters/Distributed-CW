@@ -8,7 +8,6 @@
     "express": "latest",
     "jsonwebtoken": "^5.7.0",
     "mongoose": "^4.2.3",
-    "mongoose-simple-random": "^0.3.3",
     "morgan": "^1.7.0",
     "multer": "^1.1.0",
     "request": "^2.69.0",
