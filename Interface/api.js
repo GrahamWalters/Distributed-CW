@@ -247,7 +247,7 @@ api.route('/files/:id')
                 request.del('http://localhost:3002/api/objects/'+share._id, function(err, httpResponse, body) {
                     body = JSON.parse(body);
                     if (httpResponse.statusCode == 200 && body.success == true) {
-                        share.remove().exec();
+                        share.remove();
                     }
                 });
             });
