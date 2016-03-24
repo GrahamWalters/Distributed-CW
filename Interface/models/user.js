@@ -14,6 +14,7 @@ var UserSchema = new Schema({
     salt     : { type: String, required: true },
     fileN    : { type: Number, default: 3 },
     fileT    : { type: Number, default: 2 },
+    storageSize : { type: Number, default: 0 },
     created  : { type: Date, default: Date.now }
 });
 

@@ -92,7 +92,7 @@ api.route('/users/:id')
         if (req.user.id != req.params.id)
             return res.status(403).json({ success: false, message: 'You can only get the user currently logged in' });
 
-        User.findById(req.params.id, '_id name username fileT fileN created', function(err, user) {
+        User.findById(req.params.id, '_id name username fileT fileN created storageSize', function(err, user) {
             if (err) throw err;
             res.json(user);
         });
@@ -153,6 +153,13 @@ api.route('/files')
             fileN: req.user.fileN,
             file:  fs.createReadStream(req.file.path)
         });
+
+        User.findByIdAndUpdate(req.user.id, {
+            $inc: { storageSize: req.file.size}
+        }, function(err, user) {
+
+        });
+
 
         fs.unlink(req.file.path);
 
@@ -215,6 +222,14 @@ api.route('/files/:id')
                 });
             });
 
+            var size = req.file.size - file.size;
+
+            User.findByIdAndUpdate(req.user.id, {
+                $inc: { storageSize: size}
+            }, function(err, user) {
+
+            });
+
             // Update file attributes
             file.T    = req.user.fileT;
             file.N    = req.user.fileN;
@@ -254,6 +269,12 @@ api.route('/files/:id')
 
             // Should really do this stuff in a Q
             file.remove();
+
+            User.findByIdAndUpdate(req.user.id, {
+                $inc: { storageSize: -file.size}
+            }, function(err, user) {
+
+            });
 
             res.json({
                 status: 'removed',
