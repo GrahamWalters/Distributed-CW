@@ -1,8 +1,18 @@
 'use strict';
 /* jslint browser: true */
-/* global angular:false, _:false, $:flase */
+/* global angular:false, _:false, $:flase, toastr:false, console:false */
 
 var ctrls = angular.module('app.controllers', ['ngResource']);
+
+toastr.options.progressBar = true;
+toastr.options.timeOut = 4000;
+
+var notify = function(obj) {
+    if (obj.error) toastr.error(obj.error);
+    if (obj.warning) toastr.warning(obj.warning);
+    if (obj.success) toastr.success(obj.success);
+};
+
 
 ctrls.controller('NavCtrl', ['$scope','auth','$state',
     function($scope, auth, $state) {
@@ -10,31 +20,40 @@ ctrls.controller('NavCtrl', ['$scope','auth','$state',
         $scope.currentUser = auth.currentUser;
         $scope.logOut = function() {
             auth.logOut();
+            notify({success: 'Access Token Destroyed!'});
             $state.go('home');
         };
     }]);
 
+
+ctrls.controller('RegisterCtrl', function($scope, $http, API, auth, $state) {
+    $scope.user = {};
+
+    $http.get(API + '/2fa.svg').success(function(res) {
+        $('#svg-container').html(res.svg);
+
+        $scope.user.secret = res.secret;
+    }).error(notify);
+
+    $scope.register = function() {
+        $http.post(API + '/users', $scope.user).success(function(res) {
+            if (res.success) {
+                notify(res);
+                $state.go('files');
+            }
+        }).error(notify);
+    };
+});
+
 ctrls.controller('AuthCtrl', function($scope, $http, API, auth, $state) {
     $scope.user = {};
 
-    $scope.register = function(){
-        $http.post(API + '/users', $scope.user).success(function(res) {
-            if (res.success === true) {
-                $state.go('files');
-            } else {
-                console.error('register', res);
-            }
-        });
-    };
-
     $scope.authenticate = function() {
         $http.post(API + '/authenticate', $scope.user).success(function(res) {
-            if (res.success === true) {
+            if (res.success) {
                 $state.go('files');
-            } else {
-                console.error('authenticate', res);
             }
-        });
+        }).error(notify);
     };
 });
 
@@ -49,20 +68,21 @@ ctrls.controller('SettingsCtrl', function($scope, $http, API, auth, $state) {
 
     $scope.update = function() {
         $http.put(API + '/users/' + userId, $scope.user).success(function(res) {
-            if (res.status === 'updated') {
-                console.log('Updated!');
+            if (res.success) {
+                notify(res);
                 $state.go('files');
-            } else {
-                console.error('update', res);
             }
-        });
+        }).error(notify);
     };
 
     $scope.delete = function() {
-        console.warn('Delete has been disabled until warning have been added!');
-        // $http.delete(API + '/users/' + userId).success(function(res) {
-        //     console.log(res);
-        // });
+        $http.delete(API + '/users/' + userId).success(function(res) {
+            if (res.success) {
+                notify(res);
+                auth.logOut();
+                $state.go('home');
+            }
+        });
     };
 
     $scope.cancel = function() {
@@ -89,10 +109,10 @@ ctrls.controller('FilesCtrl', function($scope, $http, API, auth) {
         $http.post(API+'/files', fd, {
             transformRequest: angular.identity,
             headers: {'Content-Type': undefined}
-        }).then(function(res) {
-            console.info('POST: /files', res);
+        }).success(function(res) {
+            notify(res);
             load();
-        });
+        }).error(notify);
     };
 
     $scope.download = function(file) {
@@ -114,23 +134,17 @@ ctrls.controller('FilesCtrl', function($scope, $http, API, auth) {
         $http.put(API + '/files/'+ id, fd, {
             transformRequest: angular.identity,
             headers: {'Content-Type': undefined}
-        }).then(function(res) {
-            $scope.fileToUpdate = {};
-            console.info('PUT: /files', res);
+        }).success(function(res) {
+            notify(res);
             load();
-        });
+            $scope.fileToUpdate = {};
+        }).error(notify);
     };
 
     $scope.delete = function(id) {
-        console.log('delete', id);
-
         $http.delete(API + '/files/'+ id).success(function(res) {
-            if (res.status === 'removed') {
-                // Remove local/refresh
-                load();
-            } else {
-                console.error('delete', res)
-            }
-        });
+            notify(res);
+            load();
+        }).error(notify);
     };
 });

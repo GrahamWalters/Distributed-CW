@@ -1,7 +1,7 @@
 /*jslint node: true */
 'use strict';
 
-var config          = require('./config')
+var config          = require('./config');
 var express         = require('express');
 var api             = express.Router();
 var _               = require('underscore');
@@ -10,6 +10,8 @@ var request         = require('request');
 var multer          = require('multer');
 var upload          = multer({ dest: 'uploads/' });
 var fs              = require('fs');
+var speakeasy       = require('speakeasy');
+var qr              = require('qr-image');
 
 var mongoose     = require('mongoose');
 mongoose.connect('mongodb://localhost/DS');
@@ -32,25 +34,19 @@ api.all('/*', function(req, res, next) {
 var auth = function(req, res, next) {
 
     // check header or url parameters or post parameters for token
-    var token = req.body.token || req.query.token || req.headers['x-access-token'];
+    var token = req.body.jwt || req.query.jwt || req.headers['x-access-token'];
 
     // decode token
-    if (token) {
-
-        // verifies secret and checks exp
-        jwt.verify(token, config.secret, function(err, user) {
-            if (err) return res.json({ success: false, message: 'Failed to authenticate token.' });
-
-            req.user = user;
-            next();
-        });
-
-    } else {
-        return res.status(403).send({
-            success: false,
-            message: 'No token provided.'
-        });
+    if (!token) {
+        return res.status(401).send({ error: 'No token provided!' });
     }
+
+    jwt.verify(token, config.secret, function(err, user) {
+        if (err) return res.status(401).json({ error: 'Failed to authenticate token!' });
+
+        req.user = user;
+        next();
+    });
 };
 
 
@@ -59,23 +55,53 @@ api.post('/authenticate', function(req, res) {
     User.findOne({ username: req.body.username }, function(err, user) {
         if (err) throw err;
 
-        if (!user || !user.validPassword(req.body.password)) {
-            res.json({ success: false, message: 'Authentication failed.' });
+        if (!user || !user.validPassword(req.body.password) || !user.validToken(req.body.twoFA)) {
+            return res.status(400).json({ error: 'Authentication failed!' });
         } else {
-            res.json({ success: true, token: user.generateJWT() })
+            res.json({ success: true, jwt: user.generateJWT() });
         }
+    });
+});
+
+
+api.get('/2fa.svg', function(req, res) {
+
+    var secret = speakeasy.generateSecret({ name: 'S5-Storage' });
+    var svg_string = qr.imageSync(secret.otpauth_url, { type: 'svg' });
+
+    res.json({
+        svg: svg_string,
+        secret: secret
     });
 });
 
 
 api.route('/users/')
     .post(function(req, res) {
+        if (typeof req.body.username !== 'string' || req.body.username.length < 2 ||
+            typeof req.body.name !== 'string' || req.body.name.length < 2) {
+            return res.status(400).json({ error: 'All fields are required!' });
+        }
+        if (typeof req.body.password !== 'string' || req.body.password.length < 8) {
+            return res.status(400).json({ error: 'Passwords must be 8 digits or longer!' });
+        }
+
+        var verified = speakeasy.totp.verify({
+            secret: req.body.secret.base32,
+            encoding: 'base32',
+            token: req.body.twoFA
+        });
+
+        if (! verified) {
+            return res.status(400).json({ error: '2FA token does not match!' });
+        }
+
         var user = new User(req.body);
         user.setPassword(req.body.password);
 
         user.save(function(err, user) {
             if (err) throw err;
-            res.status(201).json({ token: user.generateJWT() });
+            res.status(201).json({ success: 'Account created!', jwt: user.generateJWT() });
         });
     })
 
@@ -90,7 +116,7 @@ api.route('/users/')
 api.route('/users/:id')
     .get(auth, function(req, res) {
         if (req.user.id != req.params.id)
-            return res.status(403).json({ success: false, message: 'You can only get the user currently logged in' });
+            return res.status(403).json({ error: 'You can only get the user currently logged in!' });
 
         User.findById(req.params.id, '_id name username fileT fileN created storageSize', function(err, user) {
             if (err) throw err;
@@ -100,7 +126,7 @@ api.route('/users/:id')
 
     .put(auth, function(req, res) {
         if (req.user.id != req.params.id)
-            return res.status(403).json({ success: false, message: 'You can only update the user currently logged in' });
+            return res.status(403).json({ error: 'You can only update the user currently logged in!' });
 
         User.findById(req.params.id, '_id name username fileT fileN created', function(err, user) {
             if (err) throw err;
@@ -112,14 +138,14 @@ api.route('/users/:id')
             if (req.body.password) user.setPassword(req.body.password);
             user.save( function(err) {
                 if (err) throw err;
-                res.json({ 'status':'updated', 'user': user, token: user.generateJWT() });
+                res.json({ success: 'Account updated!', user: user, token: user.generateJWT() });
             });
         });
     })
 
     .delete(auth, function(req, res) {
         if (req.user.id != req.params.id)
-            return res.status(403).json({ success: false, message: 'You can only delete the user currently logged in' });
+            return res.status(403).json({ error: 'You can only delete the user currently logged in' });
 
         User.findByIdAndRemove(req.params.id, function(err) {
             if (err) {
@@ -128,14 +154,14 @@ api.route('/users/:id')
             }
             console.log('Removed', req.params.id);
 
-            res.json({'status':'removed'});
+            res.json({ success: 'Account deleted!'});
         });
     });
 
 
 api.route('/files')
     .post([auth, upload.single('file')], function(req, res) {
-        if (!req.file) return res.json({ success: false });
+        if (!req.file) return res.status(400).json({ error: 'File required!' });
 
         var sm = new ShareManager();
         var file = sm.createFile({
@@ -206,11 +232,12 @@ api.route('/files/:id')
     })
 
     .put([auth, upload.single('file')], function(req, res) {
+        if (!req.file) return res.status(400).json({ error: 'File required!' });
+
         File.findOne({ _owner: req.user.id, _id: req.params.id }, function(err, file) {
             if (err) throw err;
             if (file.name !== req.file.originalname || file.mimetype !== req.file.mimetype) {
-                res.status(400); // Bad Request
-                return res.json({ success: false, message: 'File Name or Mimetype changed!' });
+                return res.status(400).json({ error: 'File Name or Mimetype changed!' });
             }
 
             // Delete the current shares
@@ -254,7 +281,7 @@ api.route('/files/:id')
             fs.unlink(req.file.path);
 
             res.status(202); // Accepted for processing
-            res.json({ success: true, message: 'processing', file: file });
+            res.json({ success: 'File saved!', file: file });
         });
     })
 
@@ -282,10 +309,7 @@ api.route('/files/:id')
 
             });
 
-            res.json({
-                status: 'removed',
-                file: file
-            });
+            res.json({ success: 'File deleted!' });
         });
     });
 

@@ -54,7 +54,7 @@ app.config([
         .state('register', {
             url: '/register',
             templateUrl: 'views/register.html',
-            controller: 'AuthCtrl',
+            controller: 'RegisterCtrl',
             onEnter: ['$state', 'auth', function($state, auth) {
                 if (auth.isLoggedIn()) {
                     $state.go('home');
@@ -97,7 +97,7 @@ app.filter('formatBytes', function() {
         var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
         var i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-    }
+    };
 });
 
 app.directive('fileModel', ['$parse', function ($parse) {

@@ -19,12 +19,12 @@ services.factory('authInterceptor', ['API', 'auth', function(API, auth) {
 
         // Automatically save JWT tokens sent back from the server
         response: function(res) {
-            if (res.config.url.indexOf(API) === 0 && res.data.token) {
-                auth.saveToken(res.data.token);
+            if (res.config.url.indexOf(API) === 0 && res.data.jwt) {
+                auth.saveToken(res.data.jwt);
             }
             return res;
         }
-    }
+    };
 }]);
 
 
@@ -50,7 +50,7 @@ services.factory('auth', ['$window', '$timeout', function($window, $timeout) {
     auth.parseJwt = function(token) {
         var payload = JSON.parse($window.atob(token.split('.')[1]));
         return payload;
-    }
+    };
 
     auth.isLoggedIn = function() {
         var token = auth.getToken();
