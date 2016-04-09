@@ -13,6 +13,8 @@ var notify = function(obj) {
     if (obj.success) toastr.success(obj.success);
 };
 
+var common_passwords = ["password","12345678","baseball","football","jennifer","trustno1","superman","michelle","corvette","computer","xxxxxxxx","sunshine","starwars","maverick","hardcore","butthead","samantha","firebird","steelers","princess","mercedes","bigdaddy","marlboro","srinivas","internet","11111111","whatever","nicholas","midnight","startrek","einstein","dolphins","victoria","redskins","access14","iloveyou","mountain","qwertyui","danielle","swimming","redwings","cocacola","rush2112","scorpion","mistress","password1","password12","password123"];
+
 
 ctrls.controller('NavCtrl', ['$scope','auth','$state',
     function($scope, auth, $state) {
@@ -36,6 +38,11 @@ ctrls.controller('RegisterCtrl', function($scope, $http, API, auth, $state) {
     }).error(notify);
 
     $scope.register = function() {
+        if (_.contains(common_passwords, $scope.user.password)) {
+            notify({error:'Please choose a stronger password!'});
+            return;
+        }
+
         $http.post(API + '/users', $scope.user).success(function(res) {
             if (res.success) {
                 notify(res);
@@ -67,6 +74,19 @@ ctrls.controller('SettingsCtrl', function($scope, $http, API, auth, $state) {
     });
 
     $scope.update = function() {
+        if ($scope.user.fileT / $scope.user.fileN <= 0.5) {
+            notify({error:'T value should be greater than 50% of N value!'});
+            return;
+        } else
+        if ($scope.user.fileT > $scope.user.fileN) {
+            notify({error:'T value should be less than N value!'});
+            return;
+        } else
+        if (_.contains(common_passwords, $scope.user.password)) {
+            notify({error:'Please choose a stronger password!'});
+            return;
+        }
+
         $http.put(API + '/users/' + userId, $scope.user).success(function(res) {
             if (res.success) {
                 notify(res);
@@ -123,7 +143,7 @@ ctrls.controller('FilesCtrl', function($scope, $http, API, auth) {
 
     $scope.setFileToUpdate = function(file) {
         $scope.fileToUpdate = file;
-    }
+    };
 
     $scope.update = function() {
         var id = $scope.fileToUpdate._id;
