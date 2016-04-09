@@ -264,7 +264,7 @@ api.route('/files/:id')
                     function(err, httpResponse, body) {
 
                     body = JSON.parse(body);
-                    if (httpResponse.statusCode == 200 && body.success == true) {
+                    if (httpResponse.statusCode == 200 && body.success === true) {
                         share.remove(function() {
                             file.save(function() {
                                 console.log('share deleted:', share._id);
@@ -301,8 +301,7 @@ api.route('/files/:id')
 
             fs.unlink(req.file.path);
 
-            res.status(202); // Accepted for processing
-            res.json({ success: 'File saved!', file: file });
+            res.status(202).json({ success: 'File saved!', file: file });
         });
     })
 
@@ -315,7 +314,7 @@ api.route('/files/:id')
                     function(err, httpResponse, body) {
 
                     body = JSON.parse(body);
-                    if (httpResponse.statusCode == 200 && body.success == true) {
+                    if (httpResponse.statusCode == 200 && body.success === true) {
                         share.remove();
                     }
                 });

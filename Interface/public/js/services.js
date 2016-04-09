@@ -12,7 +12,7 @@ services.factory('authInterceptor', ['API', 'auth', function(API, auth) {
             var token = auth.getToken();
             if (config.url.indexOf(API) === 0 && token) {
                 config.headers['x-access-token'] = token;
-                console.log('setting access headers');
+                console.info('setting access headers');
             }
             return config;
         },
@@ -34,7 +34,7 @@ services.factory('auth', ['$window', '$timeout', function($window, $timeout) {
     var timer = null;
 
     auth.saveToken = function(token) {
-        $window.localStorage['jwtToken'] = token;
+        $window.localStorage.jwtToken = token;
 
         $timeout.cancel( timer );
         var payload = auth.parseJwt(token);
@@ -44,7 +44,7 @@ services.factory('auth', ['$window', '$timeout', function($window, $timeout) {
     };
 
     auth.getToken = function() {
-        return $window.localStorage['jwtToken'];
+        return $window.localStorage.jwtToken;
     };
 
     auth.parseJwt = function(token) {
@@ -67,8 +67,6 @@ services.factory('auth', ['$window', '$timeout', function($window, $timeout) {
     auth.currentUser = function() {
         if (auth.isLoggedIn()) {
             var token = auth.getToken();
-            // var payload = JSON.parse($window.atob(token.split('.')[1]));
-
             return auth.parseJwt(token);
         }
     };
