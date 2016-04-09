@@ -21,5 +21,13 @@ app.use( express.static('public') );
 var api = require('./api');
 app.use('/api', api);
 
+app.use(function (error, req, res, next) {
+    if (!error) {
+        next();
+    } else {
+        console.error(error.stack);
+        res.send(500);
+    }
+});
 
 console.log("Server started on port %d in %s mode", server.address().port, app.settings.env);

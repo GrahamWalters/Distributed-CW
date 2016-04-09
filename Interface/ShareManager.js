@@ -1,13 +1,31 @@
-var config          = require('./config')
+var config          = require('./config');
 var _               = require('underscore');
 var request         = require('request');
 
 var File            = require('./models/file');
 var User            = require('./models/user');
 
+
+// Balances the number of shares on each provider
+var CloudletManager = function() {
+    this.cloudlets = config.cloudlets;
+    this.counter = -1;
+
+    this.getCloudlet = function() {
+        this.counter ++;
+
+        if (this.counter == this.cloudlets.length)
+            this.counter = 0;
+
+        return this.cloudlets[this.counter];
+    };
+};
+var cm = new CloudletManager();
+
+
 var ShareManager = function() {
     var self = this;
-    this.file;
+    this.file = null;
 
     this.createFile = function(file) {
         this.file = new File(file);
@@ -22,7 +40,7 @@ var ShareManager = function() {
     };
 
     this.createShare = function() {
-        var share = this.file.shares.create({ provider: 's3' });
+        var share = this.file.shares.create({ provider: cm.getCloudlet() });
         this.file.shares.push(share);
         share.save();
 
@@ -72,7 +90,7 @@ var ShareManager = function() {
             form.append('file', buff, {
                 filename: share._id.toString(),
                 contentType: 'application/octet-stream',
-                knownLength: buff.length
+                knownLength: Buffer.byteLength(buff)
             });
         });
         self.saveDB();

@@ -17,9 +17,17 @@ app.use( bodyParser.urlencoded({ extended: true }) );
 
 // ROUTES FOR THE API
 // =============================================================================
-// var api = require('./api');
-var api = require('./dummy');
+var api = require('./api');
 app.use('/api', api);
+
+app.use(function (error, req, res, next) {
+    if (!error) {
+        next();
+    } else {
+        console.error(error.stack);
+        res.send(500);
+    }
+});
 
 
 console.log("Server started on port %d in %s mode", server.address().port, app.settings.env);

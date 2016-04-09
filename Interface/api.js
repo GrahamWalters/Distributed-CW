@@ -13,8 +13,10 @@ var fs              = require('fs');
 var speakeasy       = require('speakeasy');
 var qr              = require('qr-image');
 
+console.log(config.services);
+
 var mongoose     = require('mongoose');
-mongoose.connect('mongodb://localhost/DS');
+mongoose.connect(config.services.mongodb);
 
 var File            = require('./models/file');
 var User            = require('./models/user');
@@ -128,17 +130,33 @@ api.route('/users/:id')
         if (req.user.id != req.params.id)
             return res.status(403).json({ error: 'You can only update the user currently logged in!' });
 
-        User.findById(req.params.id, '_id name username fileT fileN created', function(err, user) {
+        User.findById(req.params.id, function(err, user) {
             if (err) throw err;
+
+            if (!req.body.twoFA || !user.validToken(req.body.twoFA)) {
+                return res.status(401).json({ error: '2FA token does not match!' });
+            }
 
             if (req.body.name)     user.name = req.body.name;
             if (req.body.username) user.username = req.body.username;
             if (req.body.fileT)    user.fileT = req.body.fileT;
             if (req.body.fileN)    user.fileN = req.body.fileN;
             if (req.body.password) user.setPassword(req.body.password);
+
             user.save( function(err) {
                 if (err) throw err;
-                res.json({ success: 'Account updated!', user: user, token: user.generateJWT() });
+                res.json({
+                    success: 'Account updated!',
+                    jwt: user.generateJWT(),
+                    user: {
+                        _id: user._id,
+                        name: user.name,
+                        username: user.username,
+                        fileT: user.fileT,
+                        fileN: user.fileN,
+                        created: user.created
+                    }
+                });
             });
         });
     })
@@ -190,7 +208,7 @@ api.route('/files')
         fs.unlink(req.file.path);
 
         res.status(202); // Accepted for processing
-        res.json({ success: true, message: 'processing', file: file });
+        res.json({ success: 'Uploading', file: file });
     })
 
     .get(auth, function(req, res) {
@@ -247,8 +265,11 @@ api.route('/files/:id')
 
                     body = JSON.parse(body);
                     if (httpResponse.statusCode == 200 && body.success == true) {
-                        console.log('share deleted:', share._id);
-                        share.remove();
+                        share.remove(function() {
+                            file.save(function() {
+                                console.log('share deleted:', share._id);
+                            });
+                        });
                     }
                 });
             });
