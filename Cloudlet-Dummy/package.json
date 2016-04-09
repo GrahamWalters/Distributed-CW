@@ -1,16 +1,18 @@
 {
   "name": "DS-Cloudlet-Dummy",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "dependencies": {
     "body-parser": "latest",
     "compression": "latest",
     "express": "latest",
     "morgan": "^1.7.0",
-    "multer": "^1.1.0",
-    "underscore": "latest"
+    "multer": "^1.1.0"
   },
   "devDependencies": {
     "nodemon": "latest"
+  },
+  "scripts": {
+    "start": "node app.js"
   }
 }

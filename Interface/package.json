@@ -1,6 +1,6 @@
 {
   "name": "DS-Interface",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "dependencies": {
     "body-parser": "latest",
@@ -17,5 +17,8 @@
   },
   "devDependencies": {
     "nodemon": "latest"
+  },
+  "scripts": {
+    "start": "node app.js"
   }
 }

@@ -8,7 +8,7 @@ var app = angular.module('S5', [
 ]);
 
 
-app.constant('API', 'http://localhost:3001/api');
+app.constant('API', '/api');
 
 app.config([
     '$stateProvider',

@@ -1,6 +1,6 @@
 {
   "name": "DS-Cloudlet",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "dependencies": {
     "aws-sdk": "^2.2.39",
@@ -9,9 +9,11 @@
     "express": "latest",
     "morgan": "^1.7.0",
     "multer": "^1.1.0",
-    "underscore": "latest"
   },
   "devDependencies": {
     "nodemon": "latest"
+  },
+  "scripts": {
+    "start": "node app.js"
   }
 }

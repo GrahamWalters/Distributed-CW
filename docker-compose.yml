@@ -1,0 +1,51 @@
+interface:
+  image: grahamwalters/ds-interface
+  ports:
+    - "80:3001"
+  links:
+    - db:mongo
+    - engine:engine
+    - google:google
+    - azure:azure
+    - s3:s3
+  expose:
+    - 80
+
+db:
+  image: mongo
+  volumes:
+    - ./mongodb/data/db:/data/db:rw
+    - ./mongodb/data/configdb:/data/configdb:rw
+
+engine:
+  image: grahamwalters/ds-engine
+
+google:
+  image: grahamwalters/ds-cloudlet
+  ports:
+    - "3002"
+    - "80"
+  environment:
+    ACCESS_KEY_ID: ""
+    ACCESS_KEY: ""
+    BUCKET: ""
+
+azure:
+  image: grahamwalters/ds-cloudlet
+  ports:
+    - "3002"
+    - "80"
+  environment:
+    ACCESS_KEY_ID: ""
+    ACCESS_KEY: ""
+    BUCKET: ""
+
+s3:
+  image: grahamwalters/ds-cloudlet
+  ports:
+    - "3002"
+    - "80"
+  environment:
+    ACCESS_KEY_ID: ""
+    ACCESS_KEY: ""
+    BUCKET: ""
