@@ -1,0 +1,52 @@
+group 'me.grahamwalters'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.2.6.RELEASE'
+        classpath 'se.transmode.gradle:gradle-docker:1.2'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'spring-boot'
+apply plugin: 'application'
+apply plugin: 'docker'
+
+group = 'grahamwalters'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.springframework.boot:spring-boot-starter-web:1.2.6.RELEASE'
+    compile files(
+            'libs/sss.jar',
+            'libs/FlexiProvider-1.7p7.signed.jar',
+            'libs/bcprov-jdk15on-1.52.jar',
+            'libs/cos-multipart.jar',
+            'libs/org.jbundle.util.osgi.wrapped.org.apache.http.client-4.1.2.jar'
+    )
+}
+
+docker {
+    baseImage "java:8"
+}
+
+
+
+task buildDocker(type: Docker, dependsOn: build) {
+    push = false
+    applicationName = jar.baseName
+    dockerfile = file('src/main/docker/Dockerfile')
+    doFirst {
+        copy {
+            from jar
+            into stageDir
+        }
+    }
+}
